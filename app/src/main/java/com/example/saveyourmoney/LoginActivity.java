@@ -134,7 +134,7 @@ public class LoginActivity extends AppCompatActivity {
 
         goMainActivityIntent.putExtra(USER_NAME,curUserName);
         goMainActivityIntent.putExtra(USER_EMAIL,curUserEmail);
-        goMainActivityIntent.putExtra(USER_PHOTO,curUserPhotoUrl);
+        goMainActivityIntent.putExtra(USER_PHOTO,curUserPhotoUrl.toString());
 
         startActivity(goMainActivityIntent);
     }
