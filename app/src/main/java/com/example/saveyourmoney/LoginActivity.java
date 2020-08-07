@@ -1,9 +1,5 @@
 package com.example.saveyourmoney;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,20 +8,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
+
+import java.util.Collections;
+import java.util.List;
+
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -39,6 +33,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
 
+    private Button loginButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,10 +42,8 @@ public class LoginActivity extends AppCompatActivity {
         //Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        createRequest();
-
-        Button signInButton = findViewById(R.id.btn_google_sign_in);
-        signInButton.setOnClickListener(new View.OnClickListener() {
+        loginButton = findViewById(R.id.btn_google_sign_in);
+        loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 signIn();
@@ -57,74 +51,41 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void createRequest(){
-
-        //Get Google Accounts
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
-    }
+    //Create Sign In Intent
 
     private void signIn(){
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent,RC_SIGN_IN);
+        List<AuthUI.IdpConfig> providers = Collections.singletonList(
+                new AuthUI.IdpConfig.GoogleBuilder().build()
+        );
+
+        startActivityForResult(
+                AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .build(),
+                RC_SIGN_IN);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == RC_SIGN_IN && resultCode == RESULT_OK){
-            //Result Returned from intent
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+        if(requestCode == RC_SIGN_IN){
+            IdpResponse response = IdpResponse.fromResultIntent(data);
 
-            try{
-                //Successful Sign in : Authenticate with Firebase.
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                firebaseAuthWithGoogle(account.getIdToken());
-            }catch (ApiException e){
-                //Sign in Failed
-                Log.d(TAG, e.getMessage());
-                Toast.makeText(this, "Login Failed!", Toast.LENGTH_SHORT).show();
+            if(resultCode == RESULT_OK){ //Successfully Signed In
+                FirebaseUser curUser = FirebaseAuth.getInstance().getCurrentUser();
+                navigateToMainActivity(curUser);
+            } else{
+                Toast.makeText(this, "Oops! There might be an error!", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "ERROR WHILE LOGIN");
+                Log.d(TAG, "onActivityResult: " + response.getError().getErrorCode());
             }
         }
     }
 
-    @Override
-    protected void onStart() {
-        //Check whether the user have already signed in.
-        super.onStart();
-
-        FirebaseUser mUser = mAuth.getCurrentUser();
-        if(mUser!=null){
-            updateUI(mUser);
-        }
-    }
-
-    //Firebase Authentication With Google
-    private void firebaseAuthWithGoogle(String idToken){
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken,null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful()){
-                            FirebaseUser mUser = mAuth.getCurrentUser();
-                            updateUI(mUser);
-                        }else{
-                            Toast.makeText(LoginActivity.this, "Login Failed!", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "Login Failed on Complete Listener");
-                        }
-                    }
-                });
-    }
-
-
     //Login
-    private void updateUI(FirebaseUser user) {
+    private void navigateToMainActivity(FirebaseUser user) {
         String curUserName = user.getDisplayName();
         String curUserEmail = user.getEmail();
         Uri curUserPhotoUrl = user.getPhotoUrl();
