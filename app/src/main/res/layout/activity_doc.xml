@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    tools:context=".DocActivity">
+
+    <LinearLayout
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_used_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Sunday, 9, August 2020"
+            android:textColor="#676767"
+            android:textSize="15sp"
+            android:fontFamily="@font/cookiefont"/>
+
+        <TextView
+            android:id="@+id/tv_used_for"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Eat Lunch With my Fellas"
+            android:textSize="15sp"
+            android:textColor="#000000"
+            android:fontFamily="@font/cookiefont"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_used_amount"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="5dp"
+        android:gravity="end|center_vertical"
+        android:text="15,000 KRW"
+        android:textSize="20sp"
+        android:textColor="#f44336"
+        android:fontFamily="@font/cookiefont"/>
+
+</LinearLayout>
