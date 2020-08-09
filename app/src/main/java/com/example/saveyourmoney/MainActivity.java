@@ -38,9 +38,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton fbNewObj;
 
     //Animation
-    private Animation fabOpen;
-    private Animation fabClose;
+    private Animation popUp;
+    private Animation popOut;
 
+    //TextViews
+    private TextView tvDocUses;
+    private TextView tvSetObj;
 
     //Boolean
     private boolean isOpen;
@@ -55,13 +58,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         curUserPhoto = findViewById(R.id.img_user_profile);
         curDate = findViewById(R.id.tv_cur_date);
 
+        tvDocUses = findViewById(R.id.tv_write_new_doc);
+        tvSetObj = findViewById(R.id.tv_set_new_obj);
+
         fbMoreOption = findViewById(R.id.fb_more_option);
         fbNewDoc = findViewById(R.id.fb_write_new_doc);
         fbNewObj = findViewById(R.id.fb_set_new_obj);
         fbMoreOption.setOnClickListener(this);
 
-        fabOpen = AnimationUtils.loadAnimation(this,R.anim.popup);
-        fabClose = AnimationUtils.loadAnimation(this,R.anim.popout);
+        popUp = AnimationUtils.loadAnimation(this,R.anim.popup);
+        popOut = AnimationUtils.loadAnimation(this,R.anim.popout);
 
         isOpen = false;
 
@@ -97,17 +103,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (cid){
             case R.id.fb_more_option:
                 if(!isOpen){
-                    fbNewDoc.startAnimation(fabOpen);
-                    fbNewObj.startAnimation(fabOpen);
-
-                    fbNewDoc.setVisibility(View.VISIBLE);
-                    fbNewObj.setVisibility(View.VISIBLE);
+                    popUp();
                 }else{
-                    fbNewDoc.startAnimation(fabClose);
-                    fbNewObj.startAnimation(fabClose);
-
-                    fbNewDoc.setVisibility(View.INVISIBLE);
-                    fbNewObj.setVisibility(View.INVISIBLE);
+                    popOut();
                 }
 
                 isOpen = !isOpen;
@@ -115,4 +113,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
     }
+
+    private void popUp(){
+        fbNewDoc.startAnimation(popUp);
+        fbNewObj.startAnimation(popUp);
+        tvDocUses.startAnimation(popUp);
+        tvSetObj.startAnimation(popUp);
+
+        fbNewDoc.setVisibility(View.VISIBLE);
+        fbNewObj.setVisibility(View.VISIBLE);
+        tvDocUses.setVisibility(View.VISIBLE);
+        tvSetObj.setVisibility(View.VISIBLE);
+    }
+
+    private void popOut(){
+        fbNewDoc.startAnimation(popOut);
+        fbNewObj.startAnimation(popOut);
+        tvDocUses.startAnimation(popOut);
+        tvSetObj.startAnimation(popOut);
+
+        fbNewDoc.setVisibility(View.INVISIBLE);
+        fbNewObj.setVisibility(View.INVISIBLE);
+        tvDocUses.setVisibility(View.INVISIBLE);
+        tvSetObj.setVisibility(View.INVISIBLE);
+    }
+
 }
