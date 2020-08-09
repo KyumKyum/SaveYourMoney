@@ -1,5 +1,6 @@
 package com.example.saveyourmoney;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,11 +17,17 @@ import java.util.Calendar;
 
 public class ObjectiveActivity extends AppCompatActivity {
 
+    private final static String TARGET_EXPENDITURE = "TARGET_EXPENDITURE";
+    private final static String TARGET_DATE = "UNTIL_WHEN";
+
     TextView curDate;
 
+    EditText objExpenditure;
     EditText objDate;
 
     Button setObj;
+    
+    String untilWhen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,14 +37,21 @@ public class ObjectiveActivity extends AppCompatActivity {
         curDate = findViewById(R.id.tv_cur_date);
 
         setObj = findViewById(R.id.btn_set_obj);
+        objExpenditure = findViewById(R.id.et_new_obj);
+        objDate = findViewById(R.id.et_obj_day);
+
         setObj.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent objIntent = new Intent();
+                objIntent.putExtra(TARGET_EXPENDITURE, objExpenditure.getText().toString());
+                objIntent.putExtra(TARGET_DATE,untilWhen);
+                setResult(RESULT_OK, objIntent);
                 finish();
             }
         });
 
-        objDate = findViewById(R.id.et_obj_day);
+
         objDate.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -65,8 +79,9 @@ public class ObjectiveActivity extends AppCompatActivity {
                 }
 
                 calendar.add(Calendar.DATE,amountDate);
-                String objDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
-                curDate.setText(objDate);
+                String computedDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
+                curDate.setText(computedDate);
+                untilWhen = computedDate;
             }
         });
 

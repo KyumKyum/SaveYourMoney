@@ -9,6 +9,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -26,6 +27,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int RECORD_EXPENDITURE = 101;
     private static final int SET_NEWOBJ = 102;
+
+    private final static String TARGET_EXPENDITURE = "TARGET_EXPENDITURE";
+    private final static String TARGET_DATE = "UNTIL_WHEN";
 
     //User Profile
     private TextView curUserName;
@@ -47,6 +51,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //TextViews
     private TextView tvDocUses;
     private TextView tvSetObj;
+    private TextView curUses;
+    private TextView dueDate;
 
     //Boolean
     private boolean isOpen;
@@ -63,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         tvDocUses = findViewById(R.id.tv_write_new_doc);
         tvSetObj = findViewById(R.id.tv_set_new_obj);
+        curUses = findViewById(R.id.tv_objective);
+        dueDate = findViewById(R.id.tv_due_date);
 
         fbMoreOption = findViewById(R.id.fb_more_option);
         fbNewDoc = findViewById(R.id.fb_write_new_doc);
@@ -153,4 +161,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvSetObj.setVisibility(View.INVISIBLE);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == SET_NEWOBJ && resultCode == RESULT_OK){
+            String targetExpenditure = data.getStringExtra(TARGET_EXPENDITURE);
+            String targetDate = data.getStringExtra(TARGET_DATE);
+
+            curUses.setText("0 / "+targetExpenditure);
+            dueDate.setText("due " + targetDate);
+        }
+    }
 }
