@@ -24,6 +24,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String USER_EMAIL = "CURRENT_USER_EMAIL";
     private static final String USER_PHOTO = "CURRENT_USER_PHOTO";
 
+    private static final int RECORD_EXPENDITURE = 101;
+    private static final int SET_NEWOBJ = 102;
+
     //User Profile
     private TextView curUserName;
     private TextView curUserEmail;
@@ -65,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fbNewDoc = findViewById(R.id.fb_write_new_doc);
         fbNewObj = findViewById(R.id.fb_set_new_obj);
         fbMoreOption.setOnClickListener(this);
+        fbNewDoc.setOnClickListener(this);
+        fbNewObj.setOnClickListener(this);
 
         popUp = AnimationUtils.loadAnimation(this,R.anim.popup);
         popOut = AnimationUtils.loadAnimation(this,R.anim.popout);
@@ -110,6 +115,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 isOpen = !isOpen;
 
+                break;
+
+            case R.id.fb_write_new_doc:
+                Intent recordIntent = new Intent(this,RecordActivity.class);
+                startActivityForResult(recordIntent,RECORD_EXPENDITURE);
+                break;
+
+            case R.id.fb_set_new_obj:
+                Intent setObjIntent = new Intent(this,ObjectiveActivity.class);
+                startActivityForResult(setObjIntent,SET_NEWOBJ);
                 break;
         }
     }
