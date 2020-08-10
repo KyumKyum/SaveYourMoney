@@ -91,7 +91,7 @@ public class LoginActivity extends AppCompatActivity {
         Uri curUserPhotoUrl = user.getPhotoUrl();
 
         Intent goMainActivityIntent = new Intent(this,MainActivity.class);
-        //goMainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        goMainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
         goMainActivityIntent.putExtra(USER_NAME,curUserName);
         goMainActivityIntent.putExtra(USER_EMAIL,curUserEmail);
