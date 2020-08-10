@@ -1,5 +1,6 @@
 package com.example.saveyourmoney;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -10,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.text.DateFormat;
@@ -43,11 +45,36 @@ public class ObjectiveActivity extends AppCompatActivity {
         setObj.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent objIntent = new Intent();
-                objIntent.putExtra(TARGET_EXPENDITURE, objExpenditure.getText().toString());
-                objIntent.putExtra(TARGET_DATE,untilWhen);
-                setResult(RESULT_OK, objIntent);
-                finish();
+                if(objExpenditure.getText().toString().trim().length() > 0 && untilWhen != null){
+
+                    final String goalExpenditure;
+                    goalExpenditure = String.format("%,d",Integer.parseInt(objExpenditure.getText().toString().trim()));
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ObjectiveActivity.this);
+                    builder.setTitle("Confirm Your Goal?");
+                    builder.setMessage("You have to use only " + goalExpenditure+"(in KRW) until " + untilWhen);
+                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent objIntent = new Intent();
+                            objIntent.putExtra(TARGET_EXPENDITURE, goalExpenditure);
+                            objIntent.putExtra(TARGET_DATE,untilWhen);
+                            setResult(RESULT_OK, objIntent);
+                            finish();
+                        }
+                    });
+                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                } else {
+                    Toast.makeText(ObjectiveActivity.this, "You haven't filled necessary parts!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

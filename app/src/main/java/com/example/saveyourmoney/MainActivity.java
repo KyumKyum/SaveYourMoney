@@ -190,9 +190,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             targetExpenditure = data.getStringExtra(TARGET_EXPENDITURE);
             targetDate = data.getStringExtra(TARGET_DATE);
 
-            targetExpenditure = String.format("%,d",Integer.parseInt(targetExpenditure));
-            Log.d(TAG, "onActivityResult: "+targetExpenditure);
-
             editor.putString(HOW_MUCH,targetExpenditure);
             editor.putString(UNTIL_WHEN,targetDate);
 
