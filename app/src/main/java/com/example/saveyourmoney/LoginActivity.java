@@ -1,6 +1,7 @@
 package com.example.saveyourmoney;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -28,17 +28,23 @@ public class LoginActivity extends AppCompatActivity {
     private static final String USER_NAME = "CURRENT_USER_NAME";
     private static final String USER_EMAIL = "CURRENT_USER_EMAIL";
     private static final String USER_PHOTO = "CURRENT_USER_PHOTO";
-    private GoogleSignInClient mGoogleSignInClient;
 
+    private final static String SHARED_PREFS = "SHARED_PREFERENCES";
+    private static final String USER_KEY = "USER_KEY_VALUE";
 
     private FirebaseAuth mAuth;
 
     private Button loginButton;
 
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
+        editor = sharedPreferences.edit();
         //Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
@@ -90,6 +96,11 @@ public class LoginActivity extends AppCompatActivity {
         String curUserEmail = user.getEmail();
         Uri curUserPhotoUrl = user.getPhotoUrl();
 
+        String userKey = curUserEmail.trim();
+        Log.d(TAG, "navigateToMainActivity: " + userKey);
+        editor.putString(USER_KEY,userKey);
+        editor.apply();
+
         Intent goMainActivityIntent = new Intent(this,MainActivity.class);
         goMainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
@@ -99,4 +110,5 @@ public class LoginActivity extends AppCompatActivity {
 
         startActivity(goMainActivityIntent);
     }
+
 }

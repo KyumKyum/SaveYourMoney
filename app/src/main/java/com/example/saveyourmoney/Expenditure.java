@@ -1,22 +1,22 @@
 package com.example.saveyourmoney;
 
-import java.text.DateFormat;
-import java.util.Calendar;
-
 public class Expenditure {
-    private String Date;
+    private String date;
     private String whatFor;
     private int howMuch;
 
-    public Expenditure(String whatFor, int howMuch) {
-        Date = setCurDate();
+    public Expenditure(String curDate, String whatFor, int howMuch) {
+        this.date = curDate;
         this.whatFor = whatFor;
         this.howMuch = howMuch;
     }
 
-    private String setCurDate(){
-        Calendar calendar = Calendar.getInstance();
-        return DateFormat.getDateInstance(DateFormat.LONG).format(calendar);
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public String getWhatFor() {
