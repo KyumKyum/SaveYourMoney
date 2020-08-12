@@ -45,6 +45,10 @@ public class RecordActivity extends AppCompatActivity {
 
     private String userKey;
 
+    private Boolean isClickable;
+
+    private Toast mToast;
+
 
 
     @Override
@@ -54,6 +58,8 @@ public class RecordActivity extends AppCompatActivity {
 
         sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
         editor = sharedPreferences.edit();
+
+        isClickable= true;
 
         totalSpended = findViewById(R.id.et_how_much);
         spendReason = findViewById(R.id.et_what_for);
@@ -68,27 +74,35 @@ public class RecordActivity extends AppCompatActivity {
                 String reasonYouSpend = spendReason.getText().toString().trim();
 
                 if( moneyYouSpend.length() > 0 && reasonYouSpend.length() > 0){
-                    userKey = sharedPreferences.getString(USER_KEY, null);
-                    collectionReference = db.collection(userKey);
+                    if(isClickable){
+                        isClickable = false;
+                        userKey = sharedPreferences.getString(USER_KEY, null);
+                        collectionReference = db.collection(userKey);
 
-                    Expenditure expenditure = new Expenditure(curDate.getText().toString().trim(),reasonYouSpend,Integer.parseInt(moneyYouSpend));
+                        Expenditure expenditure = new Expenditure(curDate.getText().toString().trim(),reasonYouSpend,Integer.parseInt(moneyYouSpend));
 
-                    collectionReference.add(expenditure)
-                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                @Override
-                                public void onSuccess(DocumentReference documentReference) {
-                                    Toast.makeText(RecordActivity.this, "Recorded!", Toast.LENGTH_SHORT).show();
-                                    finish();
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(RecordActivity.this, "Oops! This shouldn't be happened!", Toast.LENGTH_SHORT).show();
-                                    Log.d(TAG, "onFailure: " + e.getMessage());
-                                    finish();
-                                }
-                            });
+                        collectionReference.add(expenditure)
+                                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                    @Override
+                                    public void onSuccess(DocumentReference documentReference) {
+                                        Toast.makeText(RecordActivity.this, "Recorded!", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(RecordActivity.this, "Oops! This shouldn't be happened!", Toast.LENGTH_SHORT).show();
+                                        Log.d(TAG, "onFailure: " + e.getMessage());
+                                        finish();
+                                    }
+                                });
+                    } else{
+
+                        if(mToast != null) mToast.cancel();
+                        mToast = Toast.makeText(RecordActivity.this,"Currently Uploading!",Toast.LENGTH_SHORT);
+                        mToast.show();
+                    }
                 } else{
                     Toast.makeText(RecordActivity.this, "You haven't filled necessary parts!", Toast.LENGTH_SHORT).show();
                 }
