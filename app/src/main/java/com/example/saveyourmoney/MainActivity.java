@@ -6,10 +6,12 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -21,13 +23,23 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -49,11 +61,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Intent Key For Retrieve Data
     private final static String TARGET_EXPENDITURE = "TARGET_EXPENDITURE";
     private final static String TARGET_DATE = "UNTIL_WHEN";
+    private static final String USER_KEY = "USER_KEY_VALUE";
 
     //Shared Preferences Keys
     private final static String SHARED_PREFS = "SHARED_PREFERENCES";
     private final static String HOW_MUCH = "TARGET_EXPENDITURE";
     private final static String UNTIL_WHEN = "TARGET_DATE";
+    private final static String PRIORITY = "EXPENDITURE_PRIORITY";
+
+    //Firebase Firestore
+    private FirebaseFirestore rootCollection = FirebaseFirestore.getInstance();
+    private CollectionReference collectionReference;
 
     //Shared Preferences
     private SharedPreferences sharedPreferences;
@@ -89,8 +107,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean isOpen;
 
     //Strings
+    private String userKey;
     private String targetExpenditure;
     private String targetDate;
+
+    //RecyclerView & Adpater
+    private RecyclerView mRecyclerView;
+    private FirestoreRecyclerAdapter<Expenditure, ExpenditureHolder> mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setSupportActionBar(toolbar);
 
         sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
+
+        userKey = sharedPreferences.getString(USER_KEY,null);
         editor = sharedPreferences.edit();
 
         curUserName = findViewById(R.id.tv_user_name);
@@ -125,6 +150,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         isOpen = false;
 
+        setRecyclerView();
         updateData();
 
         Intent intent = getIntent();
@@ -178,30 +204,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivityForResult(setObjIntent, SET_NEW_OBJ);
                 break;
         }
-    }
-
-    //Override Methods
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if(requestCode == SET_NEW_OBJ && resultCode == RESULT_OK){
-            targetExpenditure = data.getStringExtra(TARGET_EXPENDITURE);
-            targetDate = data.getStringExtra(TARGET_DATE);
-
-            editor.putString(HOW_MUCH,targetExpenditure);
-            editor.putString(UNTIL_WHEN,targetDate);
-
-            editor.apply();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        updateData();
     }
 
     //Toolbar
@@ -294,5 +296,120 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         curUses.setText("0 / "+targetExpenditure);
         dueDate.setText("due " + targetDate);
+    }
+
+    private void setRecyclerView(){
+        mRecyclerView = findViewById(R.id.rv_usages);
+
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        collectionReference = rootCollection.collection(userKey);
+
+        Query query = collectionReference.orderBy("priority", Query.Direction.DESCENDING);
+
+        collectionReference.orderBy("priority", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful()){
+                            for (QueryDocumentSnapshot documentSnapshot : task.getResult()){
+                                Log.d(TAG, "onComplete: " + documentSnapshot.getId() + " => " + documentSnapshot.getData());
+                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "Error", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+        //Log.d(TAG, "setRecyclerView: 1");
+        
+        FirestoreRecyclerOptions<Expenditure> options = new FirestoreRecyclerOptions.Builder<Expenditure>()
+                .setQuery(query, Expenditure.class)
+                .build();
+
+        //Log.d(TAG, "setRecyclerView: 2");
+
+
+        mAdapter = new FirestoreRecyclerAdapter<Expenditure, ExpenditureHolder>(options) {
+            @Override
+            protected void onBindViewHolder(@NonNull ExpenditureHolder holder, int position, @NonNull Expenditure model) {
+                holder.spendTime.setText(model.getDate());
+                holder.spendReason.setText(model.getWhatFor());
+                holder.spendAmount.setText(model.getHowMuch());
+            }
+
+            @NonNull
+            @Override
+            public ExpenditureHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.record_item,parent,false);
+                return new ExpenditureHolder(v);
+            }
+
+            @Override
+            public void onError(@NonNull FirebaseFirestoreException e) {
+                Log.d(TAG, "onError: " + e.getMessage());
+            }
+        };
+
+       // Log.d(TAG, "setRecyclerView: 3");
+        mRecyclerView.setAdapter(mAdapter);
+        //Log.d(TAG, "setRecyclerView: 4");
+    }
+
+    //Override Methods - Activity Results
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == SET_NEW_OBJ && resultCode == RESULT_OK){
+            targetExpenditure = data.getStringExtra(TARGET_EXPENDITURE);
+            targetDate = data.getStringExtra(TARGET_DATE);
+
+            editor.putInt(PRIORITY,0);
+            editor.putString(HOW_MUCH,targetExpenditure);
+            editor.putString(UNTIL_WHEN,targetDate);
+
+            editor.apply();
+        }
+    }
+
+    //Override Methods - Activity Life Cycle
+    @Override
+    protected void onStart() {
+        super.onStart();
+        //Log.d(TAG, "onStart: 5");
+        mAdapter.startListening();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //Log.d(TAG, "onStop: 6");
+        if(mAdapter!=null) mAdapter.stopListening();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        updateData();
+    }
+
+    //ViewHolder Class
+    private class ExpenditureHolder extends RecyclerView.ViewHolder{
+
+        TextView spendTime;
+        TextView spendReason;
+        TextView spendAmount;
+
+        public ExpenditureHolder(@NonNull View itemView) {
+            super(itemView);
+
+            spendTime = itemView.findViewById(R.id.tv_used_date);
+            spendReason = itemView.findViewById(R.id.tv_used_for);
+            spendAmount = itemView.findViewById(R.id.tv_used_amount);
+        }
     }
 }

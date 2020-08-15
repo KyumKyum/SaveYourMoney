@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +29,7 @@ public class RecordActivity extends AppCompatActivity {
 
     private final static String SHARED_PREFS = "SHARED_PREFERENCES";
     private static final String USER_KEY = "USER_KEY_VALUE";
+    private final static String PRIORITY = "EXPENDITURE_PRIORITY";
 
     private TextView curDate;
     private TextView curTime;
@@ -35,6 +38,10 @@ public class RecordActivity extends AppCompatActivity {
     private EditText spendReason;
 
     private FloatingActionButton fabUpload;
+
+    private ProgressBar mProgressBar;
+
+    private FrameLayout mFrameLayout;
 
     //Firebase Firestore
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -49,12 +56,17 @@ public class RecordActivity extends AppCompatActivity {
 
     private Toast mToast;
 
+    private int priority;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
+
+        mFrameLayout = findViewById(R.id.bg_foreground);
+        mFrameLayout.getForeground().setAlpha(0);
 
         sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
         editor = sharedPreferences.edit();
@@ -63,6 +75,9 @@ public class RecordActivity extends AppCompatActivity {
 
         totalSpended = findViewById(R.id.et_how_much);
         spendReason = findViewById(R.id.et_what_for);
+
+        mProgressBar = findViewById(R.id.progressBar);
+        mProgressBar.setVisibility(View.INVISIBLE);
 
         curDate = findViewById(R.id.tv_cur_date);
         curTime = findViewById(R.id.tv_cur_time);
@@ -75,17 +90,27 @@ public class RecordActivity extends AppCompatActivity {
 
                 if( moneyYouSpend.length() > 0 && reasonYouSpend.length() > 0){
                     if(isClickable){
+
+                        mFrameLayout.getForeground().setAlpha(100);
+                        mProgressBar.setVisibility(View.VISIBLE);
+
                         isClickable = false;
                         userKey = sharedPreferences.getString(USER_KEY, null);
                         collectionReference = db.collection(userKey);
 
-                        Expenditure expenditure = new Expenditure(curDate.getText().toString().trim(),reasonYouSpend,Integer.parseInt(moneyYouSpend));
+                        priority = sharedPreferences.getInt(PRIORITY,0);
+
+                        Expenditure expenditure = new Expenditure(curDate.getText().toString().trim(),reasonYouSpend,Integer.parseInt(moneyYouSpend), ++priority);
 
                         collectionReference.add(expenditure)
                                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                     @Override
                                     public void onSuccess(DocumentReference documentReference) {
                                         Toast.makeText(RecordActivity.this, "Recorded!", Toast.LENGTH_SHORT).show();
+
+                                        editor.putInt(PRIORITY,priority);
+                                        editor.apply();
+
                                         finish();
                                     }
                                 })

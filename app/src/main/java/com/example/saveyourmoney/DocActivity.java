@@ -9,6 +9,6 @@ public class DocActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_doc);
+        setContentView(R.layout.record_item);
     }
 }
