@@ -60,16 +60,20 @@ public class LoginActivity extends AppCompatActivity {
     //Create Sign In Intent
 
     private void signIn(){
-        List<AuthUI.IdpConfig> providers = Collections.singletonList(
-                new AuthUI.IdpConfig.GoogleBuilder().build()
-        );
+       if(FirebaseAuth.getInstance().getCurrentUser() != null){ //Auto-Login
+           navigateToMainActivity(FirebaseAuth.getInstance().getCurrentUser());
+       } else {
+           List<AuthUI.IdpConfig> providers = Collections.singletonList(
+                   new AuthUI.IdpConfig.GoogleBuilder().build()
+           );
 
-        startActivityForResult(
-                AuthUI.getInstance()
-                .createSignInIntentBuilder()
-                .setAvailableProviders(providers)
-                .build(),
-                RC_SIGN_IN);
+           startActivityForResult(
+                   AuthUI.getInstance()
+                           .createSignInIntentBuilder()
+                           .setAvailableProviders(providers)
+                           .build(),
+                   RC_SIGN_IN);
+       }
     }
 
     @Override
@@ -96,19 +100,20 @@ public class LoginActivity extends AppCompatActivity {
         String curUserEmail = user.getEmail();
         Uri curUserPhotoUrl = user.getPhotoUrl();
 
-        String userKey = curUserEmail.trim();
+        String userKey = curUserEmail.trim()+"USER_KEY";
         Log.d(TAG, "navigateToMainActivity: " + userKey);
-        editor.putString(USER_KEY,userKey);
-        editor.apply();
 
         Intent goMainActivityIntent = new Intent(this,MainActivity.class);
         goMainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
+        goMainActivityIntent.putExtra(USER_KEY, userKey);
         goMainActivityIntent.putExtra(USER_NAME,curUserName);
         goMainActivityIntent.putExtra(USER_EMAIL,curUserEmail);
         goMainActivityIntent.putExtra(USER_PHOTO,curUserPhotoUrl.toString());
 
         startActivity(goMainActivityIntent);
     }
+
+
 
 }
