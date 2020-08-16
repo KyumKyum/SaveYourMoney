@@ -14,6 +14,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.text.DateFormat;
 import java.util.Calendar;
 
@@ -21,6 +24,9 @@ public class ObjectiveActivity extends AppCompatActivity {
 
     private final static String TARGET_EXPENDITURE = "TARGET_EXPENDITURE";
     private final static String TARGET_DATE = "UNTIL_WHEN";
+    private static final String USER_KEY = "USER_KEY_VALUE";
+
+    private static final String OBJ_PATH ="GOAL_INFORMATION";
 
     TextView curDate;
 
@@ -56,9 +62,11 @@ public class ObjectiveActivity extends AppCompatActivity {
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+
+                            Objective objective = new Objective(goalExpenditure,untilWhen);
+                            setDatabase(objective);
+
                             Intent objIntent = new Intent();
-                            objIntent.putExtra(TARGET_EXPENDITURE, goalExpenditure);
-                            objIntent.putExtra(TARGET_DATE,untilWhen);
                             setResult(RESULT_OK, objIntent);
                             finish();
                         }
@@ -119,5 +127,14 @@ public class ObjectiveActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         String curDateInString = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
         curDate.setText(curDateInString);
+    }
+
+    private void setDatabase(Objective objective){
+        Intent intent = getIntent();
+        String userKey = intent.getStringExtra(USER_KEY);
+
+        FirebaseFirestore root = FirebaseFirestore.getInstance();
+        DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
+        docRef.set(objective);
     }
 }
