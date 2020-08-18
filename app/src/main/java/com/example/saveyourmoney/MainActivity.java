@@ -62,7 +62,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //Request Codes
     private static final int RECORD_EXPENDITURE = 101;
-    private static final int SET_NEW_OBJ = 102;
+    private static final int SET_OBJ = 102;
+    private static final int SET_NEW_OBJ = 103;
 
     //Retrieve Data
     private static final String USER_KEY = "USER_KEY_VALUE";
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Floating Action Buttons
     private FloatingActionButton fbMoreOption;
     private FloatingActionButton fbNewDoc;
+    private FloatingActionButton fbSetObj;
     private FloatingActionButton fbNewObj;
 
     //Animation
@@ -106,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //TextViews
     private TextView tvDocUses;
     private TextView tvSetObj;
+    private TextView tvNewObj;
     private TextView goal;
     private TextView dueDate;
 
@@ -137,15 +140,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         curDate = findViewById(R.id.tv_cur_date);
 
         tvDocUses = findViewById(R.id.tv_write_new_doc);
-        tvSetObj = findViewById(R.id.tv_set_new_obj);
+        tvSetObj = findViewById(R.id.tv_set_obj);
+        tvNewObj = findViewById(R.id.tv_set_new_obj);
+
+
         goal = findViewById(R.id.tv_objective);
         dueDate = findViewById(R.id.tv_due_date);
 
         fbMoreOption = findViewById(R.id.fb_more_option);
         fbNewDoc = findViewById(R.id.fb_write_new_doc);
+        fbSetObj = findViewById(R.id.fb_set_obj);
         fbNewObj = findViewById(R.id.fb_set_new_obj);
         fbMoreOption.setOnClickListener(this);
         fbNewDoc.setOnClickListener(this);
+        fbSetObj.setOnClickListener(this);
         fbNewObj.setOnClickListener(this);
 
         mRecyclerView = findViewById(R.id.rv_usages);
@@ -212,11 +220,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
 
-            case R.id.fb_set_new_obj:
+            case R.id.fb_set_obj:
                 Intent setObjIntent = new Intent(this, ObjectiveActivity.class);
                 setObjIntent.putExtra(USER_KEY,userKey);
-                startActivityForResult(setObjIntent, SET_NEW_OBJ);
+                startActivityForResult(setObjIntent, SET_OBJ);
                 break;
+
+            case R.id.fb_set_new_obj:
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Set new goal?");
+                builder.setMessage("Your progress will be erased!");
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent setObjIntent = new Intent(MainActivity.this, ObjectiveActivity.class);
+                        setObjIntent.putExtra(USER_KEY,userKey);
+                        startActivityForResult(setObjIntent, SET_NEW_OBJ);
+                    }
+                });
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
         }
     }
 
@@ -226,12 +256,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == SET_NEW_OBJ && resultCode == RESULT_OK){
+        if(requestCode == SET_OBJ && resultCode == RESULT_OK){
+            resetButton();
             setGoal();
             resetPriority();
-            resetRecords();
             Toast.makeText(this, "Goal Set!", Toast.LENGTH_SHORT).show();
         } else if(requestCode == RECORD_EXPENDITURE && resultCode == RESULT_OK){
+            resetButton();
+
             final int returnValue = data.getIntExtra(CUR_SPENT, 0);
 
             DocumentReference docRef = root.collection(userKey).document(TOTAL_EXPENDITURE);
@@ -262,6 +294,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
+        }else if(requestCode == SET_NEW_OBJ && resultCode == RESULT_OK){
+            resetButton();
+
+            setGoal();
+            resetPriority();
+            resetRecords();
+            Toast.makeText(this, "New Goal Set!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -327,29 +366,77 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //User-Defined Functions
     private void popUp() {
         fbNewDoc.startAnimation(popUp);
-        fbNewObj.startAnimation(popUp);
         tvDocUses.startAnimation(popUp);
-        tvSetObj.startAnimation(popUp);
-
         fbNewDoc.setVisibility(View.VISIBLE);
-        fbNewObj.setVisibility(View.VISIBLE);
         tvDocUses.setVisibility(View.VISIBLE);
-        tvSetObj.setVisibility(View.VISIBLE);
+
+        DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
+
+        docRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(!documentSnapshot.exists()){
+                            tvSetObj.startAnimation(popUp);
+                            fbSetObj.startAnimation(popUp);
+                            tvSetObj.setVisibility(View.VISIBLE);
+                            fbSetObj.setVisibility(View.VISIBLE);
+                        } else {
+                            tvNewObj.startAnimation(popUp);
+                            fbNewObj.startAnimation(popUp);
+                            tvNewObj.setVisibility(View.VISIBLE);
+                            fbNewObj.setVisibility(View.VISIBLE);
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
     }
 
     private void popOut() {
+        DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
+
+        docRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(!documentSnapshot.exists()){
+                            tvSetObj.startAnimation(popOut);
+                            fbSetObj.startAnimation(popOut);
+                            tvSetObj.setVisibility(View.INVISIBLE);
+                            fbSetObj.setVisibility(View.INVISIBLE);
+                        } else {
+                            fbNewObj.startAnimation(popOut);
+                            tvNewObj.startAnimation(popOut);
+                            tvNewObj.setVisibility(View.INVISIBLE);
+                            fbNewObj.setVisibility(View.INVISIBLE);
+
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
         fbNewDoc.startAnimation(popOut);
-        fbNewObj.startAnimation(popOut);
         tvDocUses.startAnimation(popOut);
-        tvSetObj.startAnimation(popOut);
 
         fbNewDoc.setVisibility(View.INVISIBLE);
-        fbNewObj.setVisibility(View.INVISIBLE);
         tvDocUses.setVisibility(View.INVISIBLE);
-        tvSetObj.setVisibility(View.INVISIBLE);
+
+
     }
 
     //Set
+
+
     private void setGoal(){
         DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
         docRef.get()
@@ -381,6 +468,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d(TAG, "onFailure: " + e.getMessage());
                     }
                 });
+    }
+
+    private void resetButton(){
+        isOpen = false;
+        fbNewObj.setVisibility(View.INVISIBLE);
+        fbSetObj.setVisibility(View.INVISIBLE);
+        fbNewDoc.setVisibility(View.INVISIBLE);
+
+        tvNewObj.setVisibility(View.INVISIBLE);
+        tvSetObj.setVisibility(View.INVISIBLE);
+        tvDocUses.setVisibility(View.INVISIBLE);
+
     }
 
     private void resetPriority(){

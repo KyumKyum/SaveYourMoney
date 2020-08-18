@@ -177,7 +177,7 @@
         app:layout_constraintStart_toStartOf="@+id/fb_write_new_doc" />
 
     <TextView
-        android:id="@+id/tv_set_new_obj"
+        android:id="@+id/tv_set_obj"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/cookiefont"
@@ -187,8 +187,22 @@
         android:textSize="13sp"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/GL_ArchivesBottom"
-        app:layout_constraintEnd_toEndOf="@+id/fb_set_new_obj"
-        app:layout_constraintStart_toStartOf="@+id/fb_set_new_obj" />
+        app:layout_constraintEnd_toEndOf="@+id/fb_set_obj"
+        app:layout_constraintStart_toStartOf="@+id/fb_set_obj" />
+
+    <TextView
+        android:id="@+id/tv_set_new_obj"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/cookiefont"
+        android:gravity="center_horizontal"
+        android:text="Set\nNew Objective"
+        android:textColor="#000000"
+        android:textSize="13sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/GL_ArchivesBottom"
+        app:layout_constraintEnd_toEndOf="@+id/fb_set_obj"
+        app:layout_constraintStart_toStartOf="@+id/fb_set_obj" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fb_write_new_doc"
@@ -204,11 +218,24 @@
         app:layout_constraintTop_toTopOf="@+id/fb_more_option" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fb_set_new_obj"
+        android:id="@+id/fb_set_obj"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="30dp"
         android:src="@drawable/ic_baseline_add_circle_24"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorAccent"
+        app:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/fb_write_new_doc"
+        app:layout_constraintEnd_toStartOf="@+id/fb_write_new_doc"
+        app:layout_constraintTop_toTopOf="@+id/fb_write_new_doc" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fb_set_new_obj"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="30dp"
+        android:src="@drawable/ic_baseline_note_add_24"
         android:visibility="invisible"
         app:backgroundTint="@color/colorAccent"
         app:elevation="8dp"
