@@ -33,7 +33,7 @@ public class RecordActivity extends AppCompatActivity {
     private static final String PRIORITY_PATH = "RECORD_PRIORITY";
     private static final String RECORD_PATH = "USER_RECORDS";
     private static final String RECORD_LIST = "RECORDS";
-
+    private static final String CUR_SPENT = "CURRENTLY_SPENT";
 
     private TextView curDate;
     private TextView curTime;
@@ -130,6 +130,9 @@ public class RecordActivity extends AppCompatActivity {
                                                                     }
                                                                 });
 
+                                                        Intent intent = new Intent();
+                                                        intent.putExtra(CUR_SPENT,Integer.parseInt(moneyYouSpend));
+                                                        setResult(RESULT_OK,intent);
                                                         finish();
                                                     }
                                                 })

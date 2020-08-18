@@ -66,12 +66,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //Retrieve Data
     private static final String USER_KEY = "USER_KEY_VALUE";
+    private static final String CUR_SPENT = "CURRENTLY_SPENT";
+
 
     //Database Paths
     private static final String PRIORITY_PATH = "RECORD_PRIORITY";
     private static final String OBJ_PATH ="GOAL_INFORMATION";
     private static final String RECORD_PATH = "USER_RECORDS";
     private static final String RECORD_LIST = "RECORDS";
+    private static final String TOTAL_EXPENDITURE = "TOTAL_EXPENDITURE";
 
 
     //Shared Preferences Keys
@@ -82,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //Shared Preferences
     private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor editor;
 
     //User Profile
     private TextView curUserName;
@@ -128,7 +130,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
 
         userKey = sharedPreferences.getString(USER_KEY, null);
-        editor = sharedPreferences.edit();
 
         curUserName = findViewById(R.id.tv_user_name);
         curUserEmail = findViewById(R.id.tv_user_email);
@@ -159,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         updateUserInfo(intent);
 
         setDatabase();
-        setGoal();
+        loadInformation();
         updateCurDate();
         updateRecyclerView();
 
@@ -187,9 +188,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.fb_write_new_doc:
-                Intent recordIntent = new Intent(this, RecordActivity.class);
-                recordIntent.putExtra(USER_KEY,userKey);
-                startActivityForResult(recordIntent, RECORD_EXPENDITURE);
+                DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
+
+                docRef.get()
+                        .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                            @Override
+                            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                if(documentSnapshot.exists()){
+                                    Intent recordIntent = new Intent(MainActivity.this, RecordActivity.class);
+                                    recordIntent.putExtra(USER_KEY,userKey);
+                                    startActivityForResult(recordIntent, RECORD_EXPENDITURE);
+
+                                }else {
+                                    Toast.makeText(MainActivity.this, "You have to set your goal first!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
                 break;
 
             case R.id.fb_set_new_obj:
@@ -211,6 +231,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             resetPriority();
             resetRecords();
             Toast.makeText(this, "Goal Set!", Toast.LENGTH_SHORT).show();
+        } else if(requestCode == RECORD_EXPENDITURE && resultCode == RESULT_OK){
+            final int returnValue = data.getIntExtra(CUR_SPENT, 0);
+
+            DocumentReference docRef = root.collection(userKey).document(TOTAL_EXPENDITURE);
+            docRef.get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            TotalExpenditure curExpenditure = documentSnapshot.toObject(TotalExpenditure.class);
+                            int temp = curExpenditure.getTotal();
+                            temp += returnValue;
+                            curExpenditure.setTotal(temp);
+                            DocumentReference docRef = root.collection(userKey).document(TOTAL_EXPENDITURE);
+                            docRef.set(curExpenditure)
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+
+                            String youSpent = String.format("%,d",temp);
+                            updateCurObj(youSpent);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 
@@ -307,7 +358,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
                         Log.d(TAG, "onSuccess: " + documentSnapshot.getId() + " => " +documentSnapshot.getData());
                         Objective curObj = documentSnapshot.toObject(Objective.class);
-                        updateCurObj(curObj.getGoal(),curObj.getDueDate());
+
+                        TotalExpenditure totalExpenditure = new TotalExpenditure(0);
+                        DocumentReference docRef = root.collection(userKey).document(TOTAL_EXPENDITURE);
+
+                        docRef.set(totalExpenditure)
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
+                        initializeCurObj(curObj.getGoal(),curObj.getDueDate());
                     }
 
                 })
@@ -363,6 +426,48 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+    //Load
+    private void loadInformation(){
+        DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
+        docRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(!documentSnapshot.exists()){
+                            initializeCurObj("UNDEFINED","UNDEFINED");
+                            updateCurObj("UNDEFINED");
+                        } else {
+                            Objective curObjective = documentSnapshot.toObject(Objective.class);
+                            String curObj = curObjective.getGoal();
+                            String curDueDate = curObjective.getDueDate();
+                            initializeCurObj(curObj,curDueDate);
+
+                            DocumentReference totalRef = root.collection(userKey).document(TOTAL_EXPENDITURE);
+                            totalRef.get()
+                                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                            TotalExpenditure curExpenditure = documentSnapshot.toObject(TotalExpenditure.class);
+                                            String youSpent = String.format("%,d",curExpenditure.getTotal());
+                                            updateCurObj(youSpent);
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     //Update
     private void updateUserInfo(Intent intent) {
         userKey = intent.getStringExtra(USER_KEY);
@@ -386,9 +491,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         curDate.setText(curTime);
     }
 
-    private void updateCurObj(String goalExpenditure, String due){
+    private void initializeCurObj(String goalExpenditure, String due){
         goal.setText("0 / " + goalExpenditure);
         dueDate.setText("due " + due);
+    }
+
+    private void updateCurObj(String yourExpenditure){
+        String curState = goal.getText().toString();
+        String[] classified = curState.split(" / ");
+        classified[0] = yourExpenditure;
+        goal.setText(classified[0] + " / " + classified[1]);
     }
 
     private void updateRecyclerView(){
@@ -413,7 +525,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             protected void onBindViewHolder(@NonNull ExpenditureHolder holder, int position, @NonNull Expenditure model) {
                 holder.setRecordDate(model.getDate());
                 holder.setRecordReason(model.getWhatFor());
-                holder.setRecordExpenditure(String.format("%d",model.getHowMuch()));
+                holder.setRecordExpenditure(String.format("%,d",model.getHowMuch()));
             }
         };
 
@@ -452,8 +564,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     //Activity Life Cycle
-
-
     @Override
     protected void onStart() {
         super.onStart();
