@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Retrieve Data
     private static final String USER_KEY = "USER_KEY_VALUE";
     private static final String CUR_SPENT = "CURRENTLY_SPENT";
+    private static final String DIALOG_SHOWED = "EXCEED_THE_GOAL";
 
 
     //Database Paths
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //Shared Preferences
     private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
 
     //User Profile
     private TextView curUserName;
@@ -104,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Animation
     private Animation popUp;
     private Animation popOut;
+    private Animation buttonRotation;
+    private Animation buttonReturnRotation;
 
     //TextViews
     private TextView tvDocUses;
@@ -131,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setSupportActionBar(toolbar);
 
         sharedPreferences = getSharedPreferences(SHARED_PREFS, MODE_PRIVATE);
+        editor = sharedPreferences.edit();
 
         userKey = sharedPreferences.getString(USER_KEY, null);
 
@@ -142,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvDocUses = findViewById(R.id.tv_write_new_doc);
         tvSetObj = findViewById(R.id.tv_set_obj);
         tvNewObj = findViewById(R.id.tv_set_new_obj);
-
 
         goal = findViewById(R.id.tv_objective);
         dueDate = findViewById(R.id.tv_due_date);
@@ -160,6 +164,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         popUp = AnimationUtils.loadAnimation(this, R.anim.popup);
         popOut = AnimationUtils.loadAnimation(this, R.anim.popout);
+        buttonRotation = AnimationUtils.loadAnimation(this,R.anim.button_rotation);
+        buttonReturnRotation = AnimationUtils.loadAnimation(this,R.anim.button_rotation_return);
 
         isOpen = false;
 
@@ -180,6 +186,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    //onClick
     @Override
     public void onClick(View v) {
         int cid = v.getId();
@@ -190,6 +197,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
                     popOut();
                 }
+
+                rotation(isOpen);
 
                 isOpen = !isOpen;
 
@@ -260,6 +269,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             resetButton();
             setGoal();
             resetPriority();
+
+            editor.putBoolean(DIALOG_SHOWED,false);
+            editor.apply();
+
             Toast.makeText(this, "Goal Set!", Toast.LENGTH_SHORT).show();
         } else if(requestCode == RECORD_EXPENDITURE && resultCode == RESULT_OK){
             resetButton();
@@ -288,6 +301,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             updateCurObj(youSpent);
                         }
                     })
+                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            checkIfExceed();
+                        }
+                    })
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
@@ -296,10 +315,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     });
         }else if(requestCode == SET_NEW_OBJ && resultCode == RESULT_OK){
             resetButton();
-
             setGoal();
             resetPriority();
             resetRecords();
+
+            editor.putBoolean(DIALOG_SHOWED,false);
+            editor.apply();
             Toast.makeText(this, "New Goal Set!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -363,12 +384,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
-    //User-Defined Functions
+    //Animations
     private void popUp() {
-        fbNewDoc.startAnimation(popUp);
-        tvDocUses.startAnimation(popUp);
-        fbNewDoc.setVisibility(View.VISIBLE);
-        tvDocUses.setVisibility(View.VISIBLE);
+
 
         DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
 
@@ -387,6 +405,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             tvNewObj.setVisibility(View.VISIBLE);
                             fbNewObj.setVisibility(View.VISIBLE);
                         }
+                    }
+                })
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        fbNewDoc.startAnimation(popUp);
+                        tvDocUses.startAnimation(popUp);
+                        fbNewDoc.setVisibility(View.VISIBLE);
+                        tvDocUses.setVisibility(View.VISIBLE);
                     }
                 }).addOnFailureListener(new OnFailureListener() {
             @Override
@@ -415,23 +442,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             tvNewObj.startAnimation(popOut);
                             tvNewObj.setVisibility(View.INVISIBLE);
                             fbNewObj.setVisibility(View.INVISIBLE);
-
                         }
                     }
-                }).addOnFailureListener(new OnFailureListener() {
+                })
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        fbNewDoc.startAnimation(popOut);
+                        tvDocUses.startAnimation(popOut);
+
+                        fbNewDoc.setVisibility(View.INVISIBLE);
+                        tvDocUses.setVisibility(View.INVISIBLE);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
 
-        fbNewDoc.startAnimation(popOut);
-        tvDocUses.startAnimation(popOut);
-
-        fbNewDoc.setVisibility(View.INVISIBLE);
-        tvDocUses.setVisibility(View.INVISIBLE);
-
-
+    private void rotation(boolean isOpen){
+        if(!isOpen){
+            fbMoreOption.startAnimation(buttonRotation);
+        }else{
+            fbMoreOption.startAnimation(buttonReturnRotation);
+        }
     }
 
     //Set
@@ -447,6 +484,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Objective curObj = documentSnapshot.toObject(Objective.class);
 
                         TotalExpenditure totalExpenditure = new TotalExpenditure(0);
+
                         DocumentReference docRef = root.collection(userKey).document(TOTAL_EXPENDITURE);
 
                         docRef.set(totalExpenditure)
@@ -460,6 +498,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         initializeCurObj(curObj.getGoal(),curObj.getDueDate());
                     }
 
+                })
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        goal.setTextColor(getResources().getColor(R.color.black));
+                    }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -480,6 +524,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvSetObj.setVisibility(View.INVISIBLE);
         tvDocUses.setVisibility(View.INVISIBLE);
 
+        fbMoreOption.startAnimation(buttonReturnRotation);
     }
 
     private void resetPriority(){
@@ -549,6 +594,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             TotalExpenditure curExpenditure = documentSnapshot.toObject(TotalExpenditure.class);
                                             String youSpent = String.format("%,d",curExpenditure.getTotal());
                                             updateCurObj(youSpent);
+                                        }
+                                    })
+                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            checkIfExceed();
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
@@ -634,6 +685,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mRecyclerView.setAdapter(mAdapter);
     }
 
+
     //Holder Class
     private class ExpenditureHolder extends RecyclerView.ViewHolder{
 
@@ -675,6 +727,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(mAdapter!=null){
             mAdapter.stopListening();
         }
+    }
+
+    //Other Methods
+    private void checkIfExceed(){
+        String curData = goal.getText().toString();
+        String[] classified = curData.split(" / ");
+        int totalExpenditure = Integer.parseInt(classified[0].replace(",",""));
+        int goalExpenditure = Integer.parseInt(classified[1].replace(",",""));
+
+        Log.d(TAG, "totalExpenditure: " + totalExpenditure + " goalExpenditure: " + goalExpenditure);
+
+        if(totalExpenditure > goalExpenditure){
+            goal.setTextColor(getResources().getColor(R.color.red));
+            editor.putBoolean(DIALOG_SHOWED,true);
+            editor.apply();
+        } else {
+            goal.setTextColor(getResources().getColor(R.color.black));
+            editor.putBoolean(DIALOG_SHOWED,false);
+            editor.apply();
+        }
+
     }
 }
 

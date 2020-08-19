@@ -58,6 +58,21 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.696" />
 
+        <TextView
+            android:id="@+id/tv_goal_in_record"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/cookiefont"
+            android:gravity="center"
+            android:text="Loading / Loading"
+            android:textColor="#000000"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/view" />
+
         <LinearLayout
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
@@ -85,6 +100,7 @@
                 android:layout_marginTop="8dp"
                 android:hint="How Much?"
                 android:inputType="number"
+                android:maxLength="8"
                 android:textColor="#000000"
                 app:layout_constraintBottom_toTopOf="@+id/et_what_for"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -120,6 +136,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:layout_marginBottom="100dp"
+                android:maxLength="40"
                 android:hint="What for?"
                 android:textColor="#000000"
                 app:layout_constraintBottom_toTopOf="@+id/GL_View_Bottom"
@@ -133,7 +150,7 @@
             android:id="@+id/fb_upload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_attach_money_24"
+            android:src="@drawable/ic_baseline_check_24"
             app:layout_constraintBottom_toTopOf="@+id/GL_View_Bottom"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.954"
