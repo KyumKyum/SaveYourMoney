@@ -11,9 +11,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -27,6 +29,7 @@ public class ObjectiveActivity extends AppCompatActivity {
     private static final String USER_KEY = "USER_KEY_VALUE";
 
     private static final String OBJ_PATH ="GOAL_INFORMATION";
+    private static final String ACHIEVED_PATH="IS_ACHIEVED";
 
     TextView curDate;
 
@@ -36,6 +39,7 @@ public class ObjectiveActivity extends AppCompatActivity {
     Button setObj;
     
     String untilWhen;
+    String resetDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +67,9 @@ public class ObjectiveActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
-                            Objective objective = new Objective(goalExpenditure,untilWhen);
-                            setDatabase(objective);
+                            Objective objective = new Objective(goalExpenditure,untilWhen,resetDate);
+                            Achieved achieved = new Achieved(true);
+                            setDatabase(objective,achieved);
 
                             Intent objIntent = new Intent();
                             setResult(RESULT_OK, objIntent);
@@ -117,6 +122,8 @@ public class ObjectiveActivity extends AppCompatActivity {
                 String computedDate = DateFormat.getDateInstance(DateFormat.FULL).format(calendar.getTime());
                 curDate.setText(computedDate);
                 untilWhen = computedDate;
+                calendar.add(Calendar.DATE,1);
+                resetDate = DateFormat.getDateInstance(DateFormat.MEDIUM).format(calendar.getTime());
             }
         });
 
@@ -129,12 +136,27 @@ public class ObjectiveActivity extends AppCompatActivity {
         curDate.setText(curDateInString);
     }
 
-    private void setDatabase(Objective objective){
+    private void setDatabase(Objective objective, Achieved achieved){
         Intent intent = getIntent();
         String userKey = intent.getStringExtra(USER_KEY);
 
         FirebaseFirestore root = FirebaseFirestore.getInstance();
         DocumentReference docRef = root.collection(userKey).document(OBJ_PATH);
-        docRef.set(objective);
+        docRef.set(objective)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(ObjectiveActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        DocumentReference achievedRef = root.collection(userKey).document(ACHIEVED_PATH);
+        achievedRef.set(achieved)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(ObjectiveActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

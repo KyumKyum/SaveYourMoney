@@ -110,7 +110,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="CURRENT OBJECTIVE"
+            android:text="CURRENT GOAL"
             android:textColor="#000000"
             android:textSize="25sp"
             android:fontFamily="@font/cookiefont"/>

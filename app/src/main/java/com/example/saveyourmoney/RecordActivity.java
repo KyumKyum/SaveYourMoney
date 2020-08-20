@@ -43,6 +43,8 @@ public class RecordActivity extends AppCompatActivity {
     private static final String CUR_SPENT = "CURRENTLY_SPENT";
     private static final String TOTAL_EXPENDITURE = "TOTAL_EXPENDITURE";
     private static final String OBJ_PATH = "GOAL_INFORMATION";
+    private static final String ACHIEVED_PATH="IS_ACHIEVED";
+
 
     //SharedPreferences
     private SharedPreferences sharedPreferences;
@@ -165,10 +167,24 @@ public class RecordActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 upload(moneyYouSpend,reasonYouSpend);
 
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                                editor.putBoolean(DIALOG_SHOWED,true);
-                                editor.apply();
+                                DocumentReference achievedRef = root.collection(userKey).document(ACHIEVED_PATH);
+                                achievedRef.set(new Achieved(false))
+                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                                                editor.putBoolean(DIALOG_SHOWED,true);
+                                                editor.apply();
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Toast.makeText(RecordActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
                             }
                         });
 

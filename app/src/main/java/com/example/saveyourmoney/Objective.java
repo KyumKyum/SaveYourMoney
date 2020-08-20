@@ -6,14 +6,16 @@ public class Objective {
 
     String goal;
     String dueDate;
+    String resetDate;
 
     public Objective(){
         //no-args constructor required
     }
 
-    public Objective(String goal, String dueDate) {
+    public Objective(String goal, String dueDate,String resetDate) {
         this.goal = goal;
         this.dueDate = dueDate;
+        this.resetDate = resetDate;
     }
 
     @PropertyName("goal")
@@ -24,5 +26,10 @@ public class Objective {
     @PropertyName("dueDate")
     public String getDueDate() {
         return dueDate;
+    }
+
+    @PropertyName("resetDate")
+    public String getResetDate() {
+        return resetDate;
     }
 }

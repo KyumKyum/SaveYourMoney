@@ -44,7 +44,10 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.WriteBatch;
 
 import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -71,13 +74,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String DIALOG_SHOWED = "EXCEED_THE_GOAL";
 
 
+
     //Database Paths
     private static final String PRIORITY_PATH = "RECORD_PRIORITY";
     private static final String OBJ_PATH ="GOAL_INFORMATION";
     private static final String RECORD_PATH = "USER_RECORDS";
     private static final String RECORD_LIST = "RECORDS";
     private static final String TOTAL_EXPENDITURE = "TOTAL_EXPENDITURE";
-
+    private static final String ACHIEVED_PATH="IS_ACHIEVED";
 
     //Shared Preferences Keys
     private final static String SHARED_PREFS = "SHARED_PREFERENCES";
@@ -121,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //Boolean
     private boolean isOpen;
+    private boolean isAchieved;
 
     //RecyclerView & Adpater
     private RecyclerView mRecyclerView;
@@ -168,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         buttonReturnRotation = AnimationUtils.loadAnimation(this,R.anim.button_rotation_return);
 
         isOpen = false;
+        isAchieved = false;
 
 
         Intent intent = getIntent();
@@ -177,6 +183,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         loadInformation();
         updateCurDate();
         updateRecyclerView();
+
+        DocumentReference documentReference = root.collection(userKey).document(OBJ_PATH);
+        documentReference.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(documentSnapshot.exists()){
+                            Log.d(TAG, "Before check goal");
+                            checkAchieveOrNot();
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
 
     }
 
@@ -354,6 +378,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         Toast.makeText(MainActivity.this, "Logged Out!", Toast.LENGTH_SHORT).show();
+                                        Intent goLoginIntent = new Intent(getApplicationContext(),LoginActivity.class);
+                                        startActivity(goLoginIntent);
                                         finish();
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {
@@ -377,6 +403,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.btn_finish:
+                Intent goLoginIntent = new Intent(getApplicationContext(),LoginActivity.class);
+                startActivity(goLoginIntent);
                 finish();
                 break;
         }
@@ -514,6 +542,121 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
     }
 
+    //Check
+    private void checkIfExceed(){
+        String curData = goal.getText().toString();
+        String[] classified = curData.split(" / ");
+        int totalExpenditure = Integer.parseInt(classified[0].replace(",",""));
+        int goalExpenditure = Integer.parseInt(classified[1].replace(",",""));
+
+        Log.d(TAG, "totalExpenditure: " + totalExpenditure + " goalExpenditure: " + goalExpenditure);
+
+        if(totalExpenditure > goalExpenditure){
+            goal.setTextColor(getResources().getColor(R.color.red));
+            editor.putBoolean(DIALOG_SHOWED,true);
+            editor.apply();
+        } else {
+            goal.setTextColor(getResources().getColor(R.color.black));
+            editor.putBoolean(DIALOG_SHOWED,false);
+            editor.apply();
+        }
+
+    }
+
+    private void checkAchieveOrNot(){
+        Log.d(TAG, "checkGoal Start: ");
+
+        final Calendar curDate = Calendar.getInstance();
+        curDate.getTime();
+
+        final Calendar resetDate = Calendar.getInstance();
+
+        DocumentReference objRef = root.collection(userKey).document(OBJ_PATH);
+        objRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+
+                        Log.d(TAG, "checkGoal onSuccess: ");
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
+
+                        Objective setObj = documentSnapshot.toObject(Objective.class);
+                        String extracted = setObj.getResetDate();
+                        try {
+                            Date date = sdf.parse(extracted);
+                            resetDate.setTime(date);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                Log.d(TAG, "checkGoal onComplete ");
+                Log.d(TAG, "Check Difference: " + curDate.compareTo(resetDate));
+                if(curDate.compareTo(resetDate)>=0){
+                    resetAll();
+
+                    DocumentReference achievedRef = root.collection(userKey).document(ACHIEVED_PATH);
+                    achievedRef.get()
+                            .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                @Override
+                                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                    Achieved newAchieved = documentSnapshot.toObject(Achieved.class);
+                                    isAchieved = newAchieved.getAchieved();
+                                }
+                            }).addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if(isAchieved){
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                builder.setTitle("CONGRATULATION!");
+                                builder.setMessage("You've completed your challenge!");
+
+                                builder.setPositiveButton("Yeah!", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+                            } else { //Spend more money than the goal
+                                goal.setTextColor(getResources().getColor(R.color.black));
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                builder.setTitle("Oops...That's too bad...");
+                                builder.setMessage("You've use too much Money...");
+                                builder.setPositiveButton("OK...", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+                            }
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    //Reset
+
     private void resetButton(){
         isOpen = false;
         fbNewObj.setVisibility(View.INVISIBLE);
@@ -568,6 +711,65 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void resetAll(){
+        Log.d(TAG, "resetAll ");
+        resetRecords();
+        deleteGoal();
+        deletePriority();
+        deleteTotalExpenditure();
+        deleteIsAchieved();
+
+        loadInformation();
+    }
+
+    //Delete
+    private void deleteGoal(){
+        Log.d(TAG, "resetOthers");
+        DocumentReference objRef = root.collection(userKey).document(OBJ_PATH);
+        objRef.delete()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void deletePriority(){
+        DocumentReference priorityRef = root.collection(userKey).document(PRIORITY_PATH);
+
+        priorityRef.delete()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void deleteTotalExpenditure(){
+        DocumentReference totalRef = root.collection(userKey).document(TOTAL_EXPENDITURE);
+
+        totalRef.delete()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void deleteIsAchieved(){
+        DocumentReference achievedRef = root.collection(userKey).document(ACHIEVED_PATH);
+        achievedRef.delete()
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     //Load
@@ -721,6 +923,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAdapter.startListening();
     }
 
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -729,25 +932,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    //Other Methods
-    private void checkIfExceed(){
-        String curData = goal.getText().toString();
-        String[] classified = curData.split(" / ");
-        int totalExpenditure = Integer.parseInt(classified[0].replace(",",""));
-        int goalExpenditure = Integer.parseInt(classified[1].replace(",",""));
-
-        Log.d(TAG, "totalExpenditure: " + totalExpenditure + " goalExpenditure: " + goalExpenditure);
-
-        if(totalExpenditure > goalExpenditure){
-            goal.setTextColor(getResources().getColor(R.color.red));
-            editor.putBoolean(DIALOG_SHOWED,true);
-            editor.apply();
-        } else {
-            goal.setTextColor(getResources().getColor(R.color.black));
-            editor.putBoolean(DIALOG_SHOWED,false);
-            editor.apply();
-        }
-
-    }
 }
 
