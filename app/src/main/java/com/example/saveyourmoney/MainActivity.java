@@ -73,8 +73,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String CUR_SPENT = "CURRENTLY_SPENT";
     private static final String DIALOG_SHOWED = "EXCEED_THE_GOAL";
 
-
-
     //Database Paths
     private static final String PRIORITY_PATH = "RECORD_PRIORITY";
     private static final String OBJ_PATH ="GOAL_INFORMATION";
@@ -82,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String RECORD_LIST = "RECORDS";
     private static final String TOTAL_EXPENDITURE = "TOTAL_EXPENDITURE";
     private static final String ACHIEVED_PATH="IS_ACHIEVED";
+    private static final String CROWN_PATH="CROWN_HERE";
 
     //Shared Preferences Keys
     private final static String SHARED_PREFS = "SHARED_PREFERENCES";
@@ -106,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton fbNewDoc;
     private FloatingActionButton fbSetObj;
     private FloatingActionButton fbNewObj;
+    private FloatingActionButton fbMoreInformation;
 
     //Animation
     private Animation popUp;
@@ -119,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView tvNewObj;
     private TextView goal;
     private TextView dueDate;
+    private TextView crownNum;
 
     //UI
     private Toolbar toolbar;
@@ -155,15 +156,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         goal = findViewById(R.id.tv_objective);
         dueDate = findViewById(R.id.tv_due_date);
+        crownNum = findViewById(R.id.tv_crown_number);
 
         fbMoreOption = findViewById(R.id.fb_more_option);
         fbNewDoc = findViewById(R.id.fb_write_new_doc);
         fbSetObj = findViewById(R.id.fb_set_obj);
         fbNewObj = findViewById(R.id.fb_set_new_obj);
+        fbMoreInformation = findViewById(R.id.fb_more_information);
+
         fbMoreOption.setOnClickListener(this);
         fbNewDoc.setOnClickListener(this);
         fbSetObj.setOnClickListener(this);
         fbNewObj.setOnClickListener(this);
+        fbMoreInformation.setOnClickListener(this);
 
         mRecyclerView = findViewById(R.id.rv_usages);
 
@@ -180,9 +185,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         updateUserInfo(intent);
 
         setDatabase();
-        loadInformation();
-        updateCurDate();
-        updateRecyclerView();
 
         DocumentReference documentReference = root.collection(userKey).document(OBJ_PATH);
         documentReference.get()
@@ -195,12 +197,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     }
                 })
+
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+
+        loadInformation();
+        updateCurDate();
+        updateRecyclerView();
 
     }
 
@@ -280,6 +287,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 AlertDialog dialog = builder.create();
                 dialog.show();
+
+                break;
+
+            case R.id.fb_more_information:
+                Intent instIntent = new Intent(this, InstructionActivity.class);
+                startActivity(instIntent);
         }
     }
 
@@ -595,20 +608,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.d(TAG, "checkGoal onComplete ");
                 Log.d(TAG, "Check Difference: " + curDate.compareTo(resetDate));
                 if(curDate.compareTo(resetDate)>=0){
-                    resetAll();
-
                     DocumentReference achievedRef = root.collection(userKey).document(ACHIEVED_PATH);
+
                     achievedRef.get()
                             .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                 @Override
                                 public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                    Achieved newAchieved = documentSnapshot.toObject(Achieved.class);
-                                    isAchieved = newAchieved.getAchieved();
+                                    if(documentSnapshot.exists()){
+                                        Achieved newAchieved = documentSnapshot.toObject(Achieved.class);
+                                        isAchieved = newAchieved.getAchieved();
+                                    } else {
+                                        Toast.makeText(MainActivity.this, "NULL OBJ", Toast.LENGTH_SHORT).show();
+                                        Log.d(TAG, "NULL OBJECT");
+                                    }
                                 }
                             }).addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                             if(isAchieved){
+
+                                DocumentReference crownRef = root.collection(userKey).document(CROWN_PATH);
+                                crownRef.get()
+                                        .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                                if(!documentSnapshot.exists()){ //Newly assigning
+                                                    Crown crown = new Crown(1);
+                                                    DocumentReference docRef = root.collection(userKey).document(CROWN_PATH);
+                                                    docRef.set(crown)
+                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+                                                                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            });
+                                                }else{
+                                                    Crown retrievedData = documentSnapshot.toObject(Crown.class);
+                                                    int curCrown = retrievedData.getCrownNum() + 1;
+                                                    retrievedData.setCrownNum(curCrown);
+
+                                                    DocumentReference docRef = root.collection(userKey).document(CROWN_PATH);
+                                                    docRef.set(curCrown)
+                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+                                                                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            });
+                                                }
+                                            }
+                                        })
+                                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                loadCrownNum();
+                                            }
+                                        })
+                                        .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
                                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                                 builder.setTitle("CONGRATULATION!");
                                 builder.setMessage("You've completed your challenge!");
@@ -638,6 +700,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 AlertDialog dialog = builder.create();
                                 dialog.show();
                             }
+
+                            resetAll();
+
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
@@ -793,9 +858,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                         @Override
                                         public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                            TotalExpenditure curExpenditure = documentSnapshot.toObject(TotalExpenditure.class);
-                                            String youSpent = String.format("%,d",curExpenditure.getTotal());
-                                            updateCurObj(youSpent);
+                                            if(documentSnapshot.exists()){
+                                                TotalExpenditure curExpenditure = documentSnapshot.toObject(TotalExpenditure.class);
+                                                String youSpent = String.format("%,d",curExpenditure.getTotal());
+                                                updateCurObj(youSpent);
+                                            }
                                         }
                                     })
                                     .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -812,12 +879,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     });
                         }
                     }
-                }).addOnFailureListener(new OnFailureListener() {
+                })
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        loadCrownNum();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void loadCrownNum(){
+        DocumentReference docRef = root.collection(userKey).document(CROWN_PATH);
+        docRef.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if(documentSnapshot.exists()){ // Crown exists
+                            Crown crown = documentSnapshot.toObject(Crown.class);
+                            crownNum.setText(" * " + crown.getCrownNum());
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     //Update
@@ -922,7 +1016,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onStart();
         mAdapter.startListening();
     }
-
 
     @Override
     protected void onStop() {
