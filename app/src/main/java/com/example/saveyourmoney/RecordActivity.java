@@ -155,14 +155,14 @@ public class RecordActivity extends AppCompatActivity {
                             upload(moneyYouSpend, reasonYouSpend);
                         } else {
                             if (mToast != null) mToast.cancel();
-                            mToast = Toast.makeText(RecordActivity.this, "Currently Uploading!", Toast.LENGTH_SHORT);
+                            mToast = Toast.makeText(RecordActivity.this, "업로드 중이에요!", Toast.LENGTH_SHORT);
                             mToast.show();
                         }
                     } else {
                         AlertDialog.Builder builder = new AlertDialog.Builder(RecordActivity.this);
-                        builder.setTitle("You're spending too much money!");
-                        builder.setMessage("You'll lose your crown.");
-                        builder.setPositiveButton("I Understand.", new DialogInterface.OnClickListener() {
+                        builder.setTitle("헐...너무 많이 지출하셨는데요? ㅇㅁㅇ...");
+                        builder.setMessage("왕관은 다음 기회에...ㅠㅠ");
+                        builder.setPositiveButton("알겠습니당...", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 upload(moneyYouSpend,reasonYouSpend);
@@ -192,7 +192,7 @@ public class RecordActivity extends AppCompatActivity {
                         dialog.show();
                     }
                 } else {
-                    Toast.makeText(RecordActivity.this, "You haven't filled necessary parts!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RecordActivity.this, "필요한 부분을 다 채우지 않았어요!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -304,7 +304,7 @@ public class RecordActivity extends AppCompatActivity {
                                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                     @Override
                                     public void onSuccess(DocumentReference documentReference) {
-                                        Toast.makeText(RecordActivity.this, "Recorded!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(RecordActivity.this, "기록 완료! >_<", Toast.LENGTH_SHORT).show();
 
                                         Log.d(TAG, "onSuccess (final): " + priorityValue);
 

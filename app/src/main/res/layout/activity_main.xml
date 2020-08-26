@@ -28,82 +28,80 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/GL_ViewBottom"/>
 
-    <LinearLayout
-        android:id="@+id/linearLayout4"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/CL_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
-        android:gravity="end"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/GL_ViewBottom"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:padding="10dp"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/tv_cur_date"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:gravity="center"
-                android:layout_margin="10dp"
-                android:padding="5dp"
-                android:fontFamily="@font/cookiefont"
-                android:text="Friday, 7, August 2020"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp"
-                android:textStyle="italic"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/img_user_profile"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/tv_cur_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="10dp"
+            android:fontFamily="@font/cookiefont"
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="Friday, 7, August 2020"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="italic"
+            app:autoSizeMaxTextSize="15sp"
+            app:autoSizeMinTextSize="10sp"
+            app:autoSizeTextType="uniform"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/img_user_profile"
+            app:layout_constraintHorizontal_bias="0.8"
+            app:layout_constraintStart_toStartOf="@id/CL_profile"
+            app:layout_constraintTop_toTopOf="@id/CL_profile"
+            app:layout_constraintVertical_bias="0.326" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/img_user_profile"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_cur_date">
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/crown"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/tv_cur_date"
+            app:layout_constraintHorizontal_bias="0.369"
+            app:layout_constraintStart_toStartOf="@id/tv_cur_date"
+            app:layout_constraintTop_toBottomOf="@id/tv_cur_date"
+            app:layout_constraintVertical_bias="0.183" />
 
-                <ImageView
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/crown"/>
+        <TextView
+            android:id="@+id/tv_crown_number"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:fontFamily="@font/cookiefont"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text=" * 0"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/tv_cur_date"
+            app:layout_constraintHorizontal_bias="0.647"
+            app:layout_constraintStart_toStartOf="@id/tv_cur_date"
+            app:layout_constraintTop_toBottomOf="@id/tv_cur_date"
+            app:layout_constraintVertical_bias="0.267" />
 
-                <TextView
-                    android:id="@+id/tv_crown_number"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:padding="10dp"
-                    android:gravity="center"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:text=" * 0"
-                    android:fontFamily="@font/cookiefont"/>
-
-
-            </LinearLayout>
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/img_user_profile"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/sample_img_by_dom"
-                app:civ_border_color="@color/colorPrimaryDark"
-                app:civ_border_width="2dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/img_user_profile"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:maxWidth="150dp"
+            android:maxHeight="150dp"
+            android:padding="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/sample_img_by_dom"
+            app:civ_border_color="@color/colorPrimaryDark"
+            app:civ_border_width="2dp"
+            app:layout_constraintTop_toTopOf="@id/CL_profile"
+            app:layout_constraintEnd_toEndOf="@id/CL_profile" />
 
         <TextView
             android:id="@+id/tv_user_name"
@@ -112,7 +110,12 @@
             android:fontFamily="@font/cookiefont"
             android:text="SAMPLE_USER_NAME"
             android:textColor="#FFFFFF"
-            android:textSize="20sp" />
+            android:textSize="16sp"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMaxTextSize="20sp"
+            app:autoSizeMinTextSize="15sp"
+            app:layout_constraintTop_toBottomOf="@id/img_user_profile"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <TextView
             android:id="@+id/tv_user_email"
@@ -121,11 +124,16 @@
             android:fontFamily="@font/cookiefont"
             android:text="SAMPLESAMPLE@EMAIL.COM"
             android:textColor="#FFFFFF"
-            android:textSize="16sp" />
+            android:textSize="12sp"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMaxTextSize="16sp"
+            app:autoSizeMinTextSize="10sp"
+            app:layout_constraintTop_toBottomOf="@id/tv_user_name"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/ll_cur_obj"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -136,13 +144,17 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
+            android:id="@+id/tv_your_obj"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="CURRENT GOAL"
+            android:text="@string/CURRENT_GOAL"
             android:textColor="#000000"
             android:textSize="25sp"
-            android:fontFamily="@font/cookiefont"/>
+            android:fontFamily="@font/cookiefont"
+            app:layout_constraintTop_toTopOf="@id/ll_cur_obj"
+            app:layout_constraintStart_toStartOf="@id/ll_cur_obj"
+            app:layout_constraintEnd_toEndOf="@id/ll_cur_obj"/>
 
         <TextView
             android:id="@+id/tv_objective"
@@ -150,10 +162,16 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Loading / Loading"
-            android:textSize="30sp"
+            android:textSize="22sp"
             android:textColor="#000000"
             android:textStyle="bold"
-            android:fontFamily="@font/cookiefont"/>
+            android:fontFamily="@font/cookiefont"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMaxTextSize="30sp"
+            app:autoSizeMinTextSize="15sp"
+            app:layout_constraintTop_toBottomOf="@id/tv_your_obj"
+            app:layout_constraintStart_toStartOf="@id/ll_cur_obj"
+            app:layout_constraintEnd_toEndOf="@id/ll_cur_obj"/>
 
         <TextView
             android:id="@+id/tv_due_date"
@@ -163,9 +181,12 @@
             android:text="Loading....."
             android:textSize="15sp"
             android:textColor="#454545"
-            android:fontFamily="@font/cookiefont"/>
+            android:fontFamily="@font/cookiefont"
+            app:layout_constraintTop_toBottomOf="@id/tv_objective"
+            app:layout_constraintStart_toStartOf="@id/ll_cur_obj"
+            app:layout_constraintEnd_toEndOf="@id/ll_cur_obj"/>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_usages"
@@ -210,7 +231,7 @@
         android:layout_marginBottom="10dp"
         android:gravity="center_horizontal"
         android:fontFamily="@font/cookiefont"
-        android:text="Document\nExpenditure"
+        android:text="@string/RECORD"
         android:textColor="#000000"
         android:textSize="13sp"
         android:visibility="invisible"
@@ -224,7 +245,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/cookiefont"
         android:gravity="center_horizontal"
-        android:text="Set\nObjective"
+        android:text="@string/SET_OBJ"
         android:textColor="#000000"
         android:textSize="13sp"
         android:visibility="invisible"
@@ -238,7 +259,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/cookiefont"
         android:gravity="center_horizontal"
-        android:text="Set\nNew Objective"
+        android:text="@string/NEW_OBJ"
         android:textColor="#000000"
         android:textSize="13sp"
         android:visibility="invisible"

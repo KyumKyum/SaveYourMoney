@@ -1,4 +1,20 @@
 <resources>
-    <string name="app_name">SaveYourMoney</string>
+    <string name="app_name">내 돈 지킴이</string>
     <string name="server_client_id">146341177796-1rqu2lsqnjdp158h80oafs738utgefa1.apps.googleusercontent.com</string>
+
+    <!--Objective Activity-->
+    <string name="SET_NEW_OBJ">새로운 목표 설정하기!</string>
+    <string name="UNTIL">얼마 동안?</string>
+    <string name="DAYS">일 동안!</string>
+    <string name="DOIT">목표 설정 완료!</string>
+
+    <!--Record Activity-->
+    <string name="YOU_SPENT">얼마나 지출했나요? (솔직하기 적기!)</string>
+    <string name="SPENT_FOR">지출 목적은 무엇인가요?</string>
+
+    <!--Main Activity-->
+    <string name="CURRENT_GOAL">현재 목표는?</string>
+    <string name="RECORD">지출\n기록하기</string>
+    <string name="SET_OBJ">목표\n설정하기</string>
+    <string name="NEW_OBJ">새 목표\n설정하기</string>
 </resources>

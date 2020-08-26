@@ -61,9 +61,9 @@ public class ObjectiveActivity extends AppCompatActivity {
                     goalExpenditure = String.format("%,d",Integer.parseInt(objExpenditure.getText().toString().trim()));
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(ObjectiveActivity.this);
-                    builder.setTitle("Confirm Your Goal?");
-                    builder.setMessage("You have to use only " + goalExpenditure+"(in KRW) until " + untilWhen);
-                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    builder.setTitle("목표를 설정할까요?");
+                    builder.setMessage(untilWhen + "까지 "+ goalExpenditure +"원(KRW)만 써야해요!\n아니면 왕관을 못 얻을거에요!");
+                    builder.setPositiveButton("네! 이대로 설정할게요!", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 
@@ -76,7 +76,7 @@ public class ObjectiveActivity extends AppCompatActivity {
                             finish();
                         }
                     });
-                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    builder.setNegativeButton("음...다시 생각해볼게요.", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.cancel();
@@ -86,7 +86,7 @@ public class ObjectiveActivity extends AppCompatActivity {
                     AlertDialog dialog = builder.create();
                     dialog.show();
                 } else {
-                    Toast.makeText(ObjectiveActivity.this, "You haven't filled necessary parts!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ObjectiveActivity.this, "모든 빈칸을 다 채워야해요!", Toast.LENGTH_SHORT).show();
                 }
             }
         });

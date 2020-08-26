@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     startActivityForResult(recordIntent, RECORD_EXPENDITURE);
 
                                 }else {
-                                    Toast.makeText(MainActivity.this, "You have to set your goal first!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "목표를 먼저 설정해야해요!", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }).addOnFailureListener(new OnFailureListener() {
@@ -268,9 +268,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.fb_set_new_obj:
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Set new goal?");
-                builder.setMessage("Your progress will be erased!");
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                builder.setTitle("어? 새로운 목표를 세우실건가요?");
+                builder.setMessage("이전 기록은 다 지워지고 이전 목표에 대한 왕관은 못 얻으실거에용...");
+                builder.setPositiveButton("네!", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Intent setObjIntent = new Intent(MainActivity.this, ObjectiveActivity.class);
@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         startActivityForResult(setObjIntent, SET_NEW_OBJ);
                     }
                 });
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                builder.setNegativeButton("아니요!", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
@@ -310,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             editor.putBoolean(DIALOG_SHOWED,false);
             editor.apply();
 
-            Toast.makeText(this, "Goal Set!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "목표가 설정되었어요! 잘해보자구요~ :)", Toast.LENGTH_SHORT).show();
         } else if(requestCode == RECORD_EXPENDITURE && resultCode == RESULT_OK){
             resetButton();
 
@@ -358,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             editor.putBoolean(DIALOG_SHOWED,false);
             editor.apply();
-            Toast.makeText(this, "New Goal Set!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "새로운 목표가 설정되었어요! 잘해보자구요~ :)", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -380,9 +380,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (cid) {
             case R.id.btn_logout:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("LOGOUT");
-                builder.setMessage("Are you really want to logout?");
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                builder.setTitle("로그아웃하기");
+                builder.setMessage("로그아웃하실 건가요?");
+                builder.setPositiveButton("네!", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         AuthUI.getInstance()
@@ -390,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
-                                        Toast.makeText(MainActivity.this, "Logged Out!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "ㅠㅠ또 돌아와야해요!", Toast.LENGTH_SHORT).show();
                                         Intent goLoginIntent = new Intent(getApplicationContext(),LoginActivity.class);
                                         startActivity(goLoginIntent);
                                         finish();
@@ -404,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         });
                     }
                 });
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                builder.setNegativeButton("아니요!", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
@@ -672,10 +672,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 });
 
                                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                                builder.setTitle("CONGRATULATION!");
-                                builder.setMessage("You've completed your challenge!");
+                                builder.setTitle("우왕! 축하해요!!! >_<");
+                                builder.setMessage("목표를 지켰으니 선물로 왕관을 드리겠습니다! :)");
 
-                                builder.setPositiveButton("Yeah!", new DialogInterface.OnClickListener() {
+                                builder.setPositiveButton("고마워요!", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         dialog.cancel();
@@ -688,9 +688,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 goal.setTextColor(getResources().getColor(R.color.black));
 
                                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                                builder.setTitle("Oops...That's too bad...");
-                                builder.setMessage("You've use too much Money...");
-                                builder.setPositiveButton("OK...", new DialogInterface.OnClickListener() {
+                                builder.setTitle("헐...목표를 못 지켰네요...ㅠㅠ");
+                                builder.setMessage("우리 담엔 잘해봐요ㅠㅠ");
+                                builder.setPositiveButton("넹...", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         dialog.cancel();
